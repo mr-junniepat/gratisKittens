@@ -217,8 +217,8 @@ export function FeaturedKittens() {
             <h2 className="text-center text-3xl font-bold tracking-tight md:text-4xl">Uitgelichte Kittens</h2>
             <p className="text-sm text-muted-foreground ml-4">Meest bekeken</p>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="animate-pulse">
                 <div className="bg-muted aspect-square rounded-xl mb-4"></div>
                 <div className="bg-muted h-4 rounded mb-2"></div>
