@@ -1,12 +1,9 @@
-'use client'
-
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Calendar, ArrowRight, Eye } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { stripHtml, formatDate, getFallbackImage } from "@/lib/wordpress-helpers"
-import { useState, useEffect } from "react"
 
 interface BlogPost {
   id: string
@@ -21,6 +18,7 @@ interface BlogPost {
   }
   createdAt: string
   publishedAt?: string
+  totalViews?: number
 }
 
 async function getLatestPosts(): Promise<BlogPost[]> {
@@ -48,6 +46,7 @@ async function getLatestPosts(): Promise<BlogPost[]> {
               }
               createdAt
               publishedAt
+              totalViews
             }
           }
         `
@@ -81,52 +80,8 @@ async function getLatestPosts(): Promise<BlogPost[]> {
   }
 }
 
-export function BlogPreview() {
-  const [posts, setPosts] = useState<BlogPost[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    async function fetchPosts() {
-      try {
-        const fetchedPosts = await getLatestPosts()
-        setPosts(fetchedPosts)
-        console.log("Latest posts", fetchedPosts)
-      } catch (error) {
-        console.error('Error fetching posts:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    
-    fetchPosts()
-  }, [])
-
-  if (loading) {
-    return (
-      <section className="py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <div className="mb-12 flex items-end justify-between">
-            <div>
-              <h2 className="mb-3 font-serif text-3xl font-bold tracking-tight md:text-4xl">Laatste Verhalen & Tips</h2>
-              <p className="text-lg text-muted-foreground">Ontdek handige tips en inspirerende verhalen over katten</p>
-            </div>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="overflow-hidden">
-                <div className="aspect-[3/2] bg-muted animate-pulse" />
-                <CardContent className="p-6">
-                  <div className="h-4 bg-muted rounded animate-pulse mb-2" />
-                  <div className="h-6 bg-muted rounded animate-pulse mb-3" />
-                  <div className="h-3 bg-muted rounded animate-pulse" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-    )
-  }
+export async function BlogPreview() {
+  const posts = await getLatestPosts()
 
   return (
     <section className="py-16 md:py-24">
@@ -150,7 +105,7 @@ export function BlogPreview() {
             const fullExcerpt = stripHtml(post.excerpt || post.content || '')
             const excerpt = fullExcerpt.length > 300 ? fullExcerpt.substring(0, 300) + '...' : fullExcerpt
             const formattedDate = formatDate(post.publishedAt || post.createdAt || new Date().toISOString())
-            const viewCount = Math.floor(Math.random() * 1000) + 100 // Mock view count
+            const viewCount = post.totalViews || 0
             
             return (
               <Link key={post.id} href={`/blog/${post.id}`}>

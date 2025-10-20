@@ -8,6 +8,7 @@ import Image from "next/image"
 import { AdBanner } from "@/components/ad-banner"
 import { ShareButton } from "@/components/share-button"
 import { AdDetailClient } from "@/components/ad-detail-client"
+import { ViewTracker } from "@/components/view-tracker"
 import { formatDate, getFallbackImage } from "@/lib/wordpress-helpers"
 import { notFound } from "next/navigation"
 
@@ -188,6 +189,7 @@ export default async function AdListingPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="min-h-screen">
+      <ViewTracker type="ad" id={id} />
       <Header />
 
       {/* Back Button */}
