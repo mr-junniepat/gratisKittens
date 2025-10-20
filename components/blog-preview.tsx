@@ -23,9 +23,9 @@ interface BlogPost {
   publishedAt?: string
 }
 
-async function getFeaturedPosts(): Promise<BlogPost[]> {
+async function getLatestPosts(): Promise<BlogPost[]> {
   try {
-    console.log('📝 Fetching blog posts from Supabase...')
+    console.log('📝 Fetching latest blog posts from Supabase...')
     
     const response = await fetch('http://localhost:3000/api/graphql', {
       method: 'POST',
@@ -35,7 +35,7 @@ async function getFeaturedPosts(): Promise<BlogPost[]> {
       body: JSON.stringify({
         query: `
           query {
-            blogPosts(limit: 10, status: "published") {
+            blogPosts(limit: 50, status: "published") {
               id
               title
               content
@@ -63,19 +63,18 @@ async function getFeaturedPosts(): Promise<BlogPost[]> {
     const allPosts = data.data.blogPosts || []
     console.log('📊 Blog posts fetched:', allPosts.length)
     
-    // Filter for 2025 posts first, then fall back to recent posts
-    const posts2025 = allPosts.filter(post => {
-      const date = post.publishedAt || post.createdAt
-      return date && date.startsWith('2025')
-    })
+    // Sort by createdAt (latest first) and take first 3
+    const latestPosts = allPosts
+      .sort((a: BlogPost, b: BlogPost) => {
+        const dateA = new Date(a.createdAt).getTime()
+        const dateB = new Date(b.createdAt).getTime()
+        return dateB - dateA // Latest first
+      })
+      .slice(0, 3)
     
-    // If we have 2025 posts, use them; otherwise use the most recent posts
-    const selectedPosts = posts2025.length >= 3 ? posts2025.slice(0, 3) : allPosts.slice(0, 3)
+    console.log('📊 Latest posts selected:', latestPosts.length)
     
-    console.log('📊 Posts from 2025:', posts2025.length)
-    console.log('📊 Selected posts:', selectedPosts.length)
-    
-    return selectedPosts
+    return latestPosts
   } catch (error) {
     console.error('❌ Error fetching blog posts:', error)
     return []
@@ -89,9 +88,9 @@ export function BlogPreview() {
   useEffect(() => {
     async function fetchPosts() {
       try {
-        const fetchedPosts = await getFeaturedPosts()
+        const fetchedPosts = await getLatestPosts()
         setPosts(fetchedPosts)
-        console.log("posts", fetchedPosts)
+        console.log("Latest posts", fetchedPosts)
       } catch (error) {
         console.error('Error fetching posts:', error)
       } finally {
@@ -155,7 +154,7 @@ export function BlogPreview() {
             
             return (
               <Link key={post.id} href={`/blog/${post.id}`}>
-                <Card className="group overflow-hidden transition-all hover:shadow-lg">
+                <Card className="group overflow-hidden transition-all hover:shadow-lg h-full flex flex-col">
                   <div className="relative aspect-[3/2] overflow-hidden">
                     <Image
                       src={imageUrl}
@@ -164,7 +163,7 @@ export function BlogPreview() {
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   </div>
-                  <CardContent className="p-6">
+                  <CardContent className="p-6 flex flex-col flex-grow">
                     <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
                       <Calendar className="h-4 w-4" />
                       <span>{formattedDate}</span>
@@ -175,7 +174,7 @@ export function BlogPreview() {
                     <h3 className="mb-2 font-serif text-xl font-semibold leading-tight transition-colors group-hover:text-primary">
                       {post.title}
                     </h3>
-                    <p className="text-sm leading-relaxed text-muted-foreground">{excerpt}</p>
+                    <p className="text-sm leading-relaxed text-muted-foreground flex-grow">{excerpt}</p>
                   </CardContent>
                 </Card>
               </Link>
